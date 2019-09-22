@@ -1,4 +1,4 @@
-#include "utils\include\outUtils.hpp"
+#include "utils/include/outUtils.hpp"
 
 void outputMatrix(vector<vector<int> > matrix)
 {
