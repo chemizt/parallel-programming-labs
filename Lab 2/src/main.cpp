@@ -1,10 +1,10 @@
 #include <iostream>
 #include <vector>
 
-#include "utils/include/auxUtils.hpp"
-#include "utils/include/typeDefs.hpp"
-#include "utils/include/outUtils.hpp"
-#include "utils/include/randUtils.hpp"
+#include "auxUtils.hpp"
+#include "typeDefs.hpp"
+#include "outUtils.hpp"
+#include "randUtils.hpp"
 
 using std::cout;
 using std::cin;

@@ -1,4 +1,4 @@
-#include "utils/include/randUtils.hpp"
+#include "randUtils.hpp"
 
 int getRandomUpTo(int maxValue)
 {

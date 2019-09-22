@@ -1,4 +1,4 @@
-#include "utils/include/auxUtils.hpp"
+#include "auxUtils.hpp"
 
 string getSpaces(int amount)
 {
