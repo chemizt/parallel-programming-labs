@@ -1,6 +1,6 @@
 #include "auxUtils.hpp"
 
-string getSpaces(int amount)
+string getSpaces(UINT amount)
 {
     string intermediateResult = "";
 
@@ -33,13 +33,13 @@ UINT getNumberLength(int number)
     }
 }
 
-UINT getMaxNumberLengthInMatrix(vector<vector<int>> matrix)
+UINT getMaxNumberLengthInMatrix(intMatrix matrix)
 {
     UINT intermediateResult = 0;
 
     for (UINT i = 0; i < matrix.size(); i++)
     {
-        for (UINT j = 0; i < matrix.at(i).size(); j++)
+        for (UINT j = 0; j < matrix.at(i).size(); j++)
         {
             UINT tmpLength = getNumberLength(matrix.at(i).at(j));
 

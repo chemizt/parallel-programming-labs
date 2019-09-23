@@ -9,6 +9,6 @@ using std::cin;
 using std::endl;
 using std::vector;
 
-void outputMatrix(vector<vector<int> > matrix);
+void outputMatrix(intMatrix matrix);
 
 void outputVector(vector<int> vector);

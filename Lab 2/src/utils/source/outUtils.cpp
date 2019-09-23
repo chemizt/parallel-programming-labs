@@ -1,6 +1,6 @@
 #include "outUtils.hpp"
 
-void outputMatrix(vector<vector<int> > matrix)
+void outputMatrix(intMatrix matrix)
 {
     UINT maxNumLength = getMaxNumberLengthInMatrix(matrix);
 
@@ -8,7 +8,7 @@ void outputMatrix(vector<vector<int> > matrix)
     {
         for (UINT j = 0; j < matrix.at(i).size(); j++)
         {
-            cout << matrix.at(i).at(j) << getSpaces(maxNumLength * 2 - getNumberLength(matrix[i][j]));
+            cout << matrix.at(i).at(j) << getSpaces(maxNumLength * 2 - getNumberLength(matrix.at(i).at(j)));
         }
         cout << "\n";
     }

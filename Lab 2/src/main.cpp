@@ -16,7 +16,7 @@ using std::vector;
 int main()
 {
     setlocale(LC_CTYPE, "RU");
-    vector<vector<int> > a;
+    intMatrix a;
     vector<int> b;
     vector<int> c;
     UINT size;
@@ -34,9 +34,9 @@ int main()
     {
         for (UINT j = 0; j < size; j++)
         {
-            a.at(i).push_back(getRandomUpTo(RAND_MAX_VALUE));
+            a.at(i).push_back((j + 1) * (i + 1));
         }
-        b.push_back(getRandomUpTo(RAND_MAX_VALUE));
+        b.push_back((i + 1) * 10);
         c.push_back(0);
     }
 
@@ -49,7 +49,7 @@ int main()
     {
         for (UINT j = 0; j < size; j++)
         {
-            c.at(i) += a.at(i).at(j) * b.at(i);
+            c.at(i) += a.at(i).at(j) * b.at(j);
         }
     }
 
