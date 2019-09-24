@@ -6,7 +6,8 @@ set(SOURCE_LIB
 source/auxUtils.cpp 
 source/outUtils.cpp 
 source/randUtils.cpp
-source/inUtils.cpp)
+source/inUtils.cpp
+source/mathUtils.cpp)
 
 include_directories(include)
 

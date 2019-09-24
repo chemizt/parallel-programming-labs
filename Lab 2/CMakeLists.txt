@@ -6,7 +6,7 @@ set(SOURCE_EXE src/main.cpp)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out/lib)
-set(CMAKE_CXX_FLAGS "-g3 -ggdb -Wall -Wextra -pedantic -fopenmp")
+set(CMAKE_CXX_FLAGS "-g3 -ggdb -Wall -Wextra -pedantic -fopenmp -std=c++2a")
 
 include_directories(src/utils/include)
 
