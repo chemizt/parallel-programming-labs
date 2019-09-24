@@ -7,8 +7,10 @@
 using std::string;
 using std::vector;
 
-string getSpaces(UINT amount);
+string getSpaces(uInt amount);
 
-UINT getNumberLength(int number);
+uInt getNumberLength(int number);
 
-UINT getMaxNumberLengthInMatrix(intMatrix matrix);
+uInt getMaxNumberLengthInMatrix(intMatrix matrix);
+
+vector<int> createInitializedVector(uInt size);

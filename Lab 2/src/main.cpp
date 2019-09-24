@@ -4,6 +4,7 @@
 #include "auxUtils.hpp"
 #include "typeDefs.hpp"
 #include "outUtils.hpp"
+#include "inUtils.hpp"
 #include "randUtils.hpp"
 
 using std::cout;
@@ -11,7 +12,8 @@ using std::cin;
 using std::endl;
 using std::vector;
 
-#define RAND_MAX_VALUE 1000
+#define TEST_ENTITY_SIZE 4
+#define WORKING_ENTITY_BASE_SIZE 500
 
 int main()
 {
@@ -19,42 +21,72 @@ int main()
     intMatrix a;
     vector<int> b;
     vector<int> c;
-    UINT size;
+    uInt versatileVar;
 
-    cout << "Введите желаемую размерность матрицы/вектора: ";
-    cin >> size;
-
-    for (UINT i = 0; i < size; i++)
+    cout << "Список операций:\n\n"
+    << "0. Выход\n"
+    << "1. Тестовый прогон\n"
+    << "2. Рабочие прогоны\n\n";
+    
+    do
     {
-        vector<int> tmp;
-        a.push_back(tmp);
-    }
+        cout << "Выберите операцию: ";
+        cin >> versatileVar;
+        cout << "\n";
 
-    for (UINT i = 0; i < size; i++)
-    {
-        for (UINT j = 0; j < size; j++)
+        switch (versatileVar)
         {
-            a.at(i).push_back((j + 1) * (i + 1));
+            case 0:
+            {
+                cout << "Завершение работы...\n";
+                break;
+            }
+            case 1:
+            {
+                cout << "Тестирование проводится на матрице "
+                << TEST_ENTITY_SIZE << "x" << TEST_ENTITY_SIZE
+                << " и векторе " << TEST_ENTITY_SIZE << "x1\n";
+
+                cout << "\nВведите содержимое матрицы "
+                << "(целые числа; вводятся через пробел):\n";
+                a = createHandFilledSquareMatrix(TEST_ENTITY_SIZE);
+
+                cout << "\nВведите содержимое вектора "
+                << "(целые числа; вводятся через пробел):\n";
+                b = createHandFilledVector(TEST_ENTITY_SIZE);
+
+                c = createInitializedVector(TEST_ENTITY_SIZE);
+
+                cout << "\nИсходная матрица:\n";
+                outputMatrix(a);
+
+                cout << "Исходный вектор:\n";
+                outputVector(b);
+
+                for (uInt i = 0; i < TEST_ENTITY_SIZE; i++)
+                {
+                    for (uInt j = 0; j < TEST_ENTITY_SIZE; j++)
+                    {
+                        c.at(i) += a.at(i).at(j) * b.at(j);
+                    }
+                }
+
+                cout << "Результирующий вектор:\n";
+                outputVector(c);
+
+                break;
+            }
+            default:
+            {
+                cout << "Операция с таким идентификатором не определена!\n\n";
+                break;
+            }
         }
-        b.push_back((i + 1) * 10);
-        c.push_back(0);
-    }
+    } 
+    while (versatileVar != 0);
+    
+    
 
-    cout << "Исходная матрица:\n";
-    outputMatrix(a);
-    cout << "Исходный вектор:\n";
-    outputVector(b);
-
-    for (UINT i = 0; i < size; i++)
-    {
-        for (UINT j = 0; j < size; j++)
-        {
-            c.at(i) += a.at(i).at(j) * b.at(j);
-        }
-    }
-
-    cout << "Результирующий вектор:\n";
-    outputVector(c);
-
+    
     return 0;
 }

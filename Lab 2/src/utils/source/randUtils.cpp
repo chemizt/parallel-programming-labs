@@ -10,3 +10,27 @@ int getRandomUpTo(int maxValue)
 
     return distribution(rNG);
 }
+
+vector<int> createRandFilledVector(uInt size)
+{
+    vector<int> intermediateResult;
+    
+    for (uInt i = 0; i < size; i++)
+    {
+        intermediateResult.push_back(getRandomUpTo(RAND_MAX_VALUE));
+    }
+
+    return intermediateResult;
+}
+
+intMatrix createRandFilledSquareMatrix(uInt size)
+{
+    intMatrix intermediateResult;
+
+    for (uInt i = 0; i < size; i++)
+    {
+        intermediateResult.push_back(createRandFilledVector(size));
+    }
+
+    return intermediateResult;
+}

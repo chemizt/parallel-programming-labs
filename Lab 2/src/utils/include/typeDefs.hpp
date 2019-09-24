@@ -2,5 +2,5 @@
 
 using std::vector;
 
-typedef unsigned int UINT;
+typedef unsigned int uInt;
 typedef vector<vector<int> > intMatrix;

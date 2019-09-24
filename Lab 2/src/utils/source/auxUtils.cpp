@@ -1,10 +1,10 @@
 #include "auxUtils.hpp"
 
-string getSpaces(UINT amount)
+string getSpaces(uInt amount)
 {
     string intermediateResult = "";
 
-    for (UINT i = 0; i < amount; i++)
+    for (uInt i = 0; i < amount; i++)
     {
         intermediateResult += " ";
     }
@@ -12,10 +12,10 @@ string getSpaces(UINT amount)
     return intermediateResult;
 }
 
-UINT getNumberLength(int number)
+uInt getNumberLength(int number)
 {
-    UINT intermediateResult = 0;
-    UINT i = 0;
+    uInt intermediateResult = 0;
+    uInt i = 0;
 
     if (number == 0)
     {
@@ -33,21 +33,33 @@ UINT getNumberLength(int number)
     }
 }
 
-UINT getMaxNumberLengthInMatrix(intMatrix matrix)
+uInt getMaxNumberLengthInMatrix(intMatrix matrix)
 {
-    UINT intermediateResult = 0;
+    uInt intermediateResult = 0;
 
-    for (UINT i = 0; i < matrix.size(); i++)
+    for (uInt i = 0; i < matrix.size(); i++)
     {
-        for (UINT j = 0; j < matrix.at(i).size(); j++)
+        for (uInt j = 0; j < matrix.at(i).size(); j++)
         {
-            UINT tmpLength = getNumberLength(matrix.at(i).at(j));
+            uInt tmpLength = getNumberLength(matrix.at(i).at(j));
 
             if (tmpLength > intermediateResult)
             {
                 intermediateResult = tmpLength;
             }
         }
+    }
+
+    return intermediateResult;
+}
+
+vector<int> createInitializedVector(uInt size)
+{
+    vector<int> intermediateResult;
+
+    for (uInt i = 0; i < size; i++)
+    {
+        intermediateResult.push_back(0);
     }
 
     return intermediateResult;

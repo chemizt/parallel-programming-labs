@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 3.15)
 
 project(utils)
 
-set(SOURCE_LIB source/auxUtils.cpp source/outUtils.cpp source/randUtils.cpp)
+set(SOURCE_LIB 
+source/auxUtils.cpp 
+source/outUtils.cpp 
+source/randUtils.cpp
+source/inUtils.cpp)
 
 include_directories(include)
 
