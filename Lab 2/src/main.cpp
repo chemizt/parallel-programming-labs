@@ -27,6 +27,7 @@ int main()
 {
     setlocale(LC_CTYPE, "RU");
     intMatrix baseMatrix;
+    intMatrix durMatrix;
     vector<int> baseVector;
     vector<int> resultVector;
     uInt versatileVar;
@@ -34,7 +35,8 @@ int main()
     cout << "Список операций:\n\n"
     << "0. Выход\n"
     << "1. Тестовый прогон\n"
-    << "2. Рабочие прогоны\n\n";
+    << "2. Рабочие прогоны\n"
+    << "3. Просмотр результатов\n\n";
     
     do
     {
@@ -77,22 +79,53 @@ int main()
             }
             case 2:
             {
+                durMatrix.clear();                
+
                 for (uInt t = 0; t <= 5; t++)
                 {
                     uInt threadsQuantity =  round(pow(2, t));
+                    vector<int> tmpDurVector;
 
                     cout << "Количество потоков: " << threadsQuantity << "\n\n";
 
                     for (uInt p = 0; p <= 5; p++)
                     {
+                        baseMatrix.clear();
+                        baseVector.clear();
+
                         cout << "Прогон перемножения матрицы " << WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP << "x" << WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP
                              << " и вектора " << WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP << "x1" << endl;
 
-                        baseMatrix = createRandFilledSquareMatrix(WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP);
-                        baseVector = createRandFilledVector(WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP);
+                        auto start = high_resolution_clock::now();
+
+                        for (uInt x = 0; x < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; x++)
+                        {
+                            baseMatrix.push_back(createInitializedVector(WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP));
+                        }
+
+                        #pragma omp parallel for collapse(2)
+                        for (uInt x = 0; x < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; x++)
+                        {
+                            for (uInt y = 0; y < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; y++)
+                            {
+                                baseMatrix.at(x).at(y) = getRandomUpTo(RAND_MAX_VALUE);
+                            }
+                        }
+
+                        #pragma omp for
+                        for (uInt x = 0; x < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; x++)
+                        {
+                            baseVector.push_back(getRandomUpTo(RAND_MAX_VALUE));
+                        }
+
                         resultVector = createInitializedVector(WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP);
 
-                        auto start = steady_clock::now();
+                        auto prepDur = duration_cast<milliseconds>(high_resolution_clock::now() - start);
+
+                        cout << "Подготовка данных заняла " << prepDur.count() << " мс" << endl;
+
+                        start = high_resolution_clock::now();
+
                         #pragma omp parallel for num_threads(threadsQuantity) collapse(2)
                         for (uInt i = 0; i < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; i++)
                         {
@@ -101,10 +134,33 @@ int main()
                                 resultVector.at(i) += baseMatrix.at(i).at(j) * baseVector.at(j);
                             }
                         }
-                        auto end = steady_clock::now();
 
-                        cout << "Перемножение заняло " << duration_cast<microseconds>(end - start).count() << " мс\n" << endl;
+                        auto multDur = duration_cast<milliseconds>(high_resolution_clock::now() - start);
+
+                        cout << "Перемножение заняло " << multDur.count() << " мс\n" << endl;
+
+                        tmpDurVector.push_back(multDur.count());
                     }
+
+                    durMatrix.push_back(tmpDurVector);
+                }
+                
+                break;
+            }
+            case 3:
+            {
+                if (durMatrix.size() == 0)
+                {
+                    cout << "Для просмотра результатов необходимо сначала выполнить рабочие прогоны\n\n";
+                }
+                else
+                {
+                    cout << "Элементами матрицы являются значения времени выполнения умножения; "
+                    << "по горизонтали они расположены в порядке возрастания объёма перемножаемых массивов (500-1000), "
+                    << "а по вертикали - в порядке возрастания числа потоков (степени двойки от 1 до 32 включительно). "
+                    << "Время приведено в миллисекундах.\n";
+
+                    outputMatrix(durMatrix);
                 }
                 
                 break;

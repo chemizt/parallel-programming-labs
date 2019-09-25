@@ -3,7 +3,7 @@
 
 #include "typeDefs.hpp"
 
-#define RAND_MAX_VALUE 1000
+#define RAND_MAX_VALUE 100
 
 using std::mt19937_64;
 using std::random_device;
