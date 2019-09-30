@@ -64,3 +64,23 @@ vector<int> createInitializedVector(uInt size)
 
     return intermediateResult;
 }
+
+vector<double> calculateAverageAccelFromDoubleMatrix(doubleMatrix matrix)
+{
+    double tmpSum;
+    vector<double> intermediateResult;
+
+    for (uInt i = 1; i < matrix.size(); i++)
+    {
+        tmpSum = 0;
+
+        for (uInt j = 0; j < matrix.at(i).size(); j++)
+        {
+            tmpSum += matrix.at(i).at(j);
+        }
+
+        intermediateResult.push_back(tmpSum / (matrix.size() - 1));
+    }
+
+    return intermediateResult;
+}

@@ -14,3 +14,5 @@ uInt getNumberLength(int number);
 uInt getMaxNumberLengthInMatrix(intMatrix matrix);
 
 vector<int> createInitializedVector(uInt size);
+
+vector<double> calculateAverageAccelFromDoubleMatrix(doubleMatrix matrix);

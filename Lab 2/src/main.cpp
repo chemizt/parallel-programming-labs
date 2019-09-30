@@ -28,6 +28,7 @@ int main()
     setlocale(LC_CTYPE, "RU");
     intMatrix baseMatrix;
     intMatrix durMatrix;
+    doubleMatrix accelMatrix;
     vector<int> baseVector;
     vector<int> resultVector;
     uInt versatileVar;
@@ -66,25 +67,27 @@ int main()
                 baseVector = createHandFilledVector(TEST_ENTITY_SIZE);
 
                 cout << "\nИсходная матрица:\n";
-                outputMatrix(baseMatrix);
+                outputIntMatrix(baseMatrix);
 
                 cout << "Исходный вектор:\n";
-                outputVector(baseVector);
+                outputIntVector(baseVector);
 
                 resultVector = multiplyMatrixAndVector(baseMatrix, baseVector);
 
                 cout << "Результирующий вектор:\n";
-                outputVector(resultVector);
+                outputIntVector(resultVector);
                 break;
             }
             case 2:
             {
-                durMatrix.clear();                
+                durMatrix.clear();            
+                accelMatrix.clear();
 
                 for (uInt t = 0; t <= 5; t++)
                 {
-                    uInt threadsQuantity =  round(pow(2, t));
+                    uInt threadsQuantity = round(pow(2, t));
                     vector<int> tmpDurVector;
+                    vector<double> tmpAccelVector;
 
                     cout << "Количество потоков: " << threadsQuantity << "\n\n";
 
@@ -117,15 +120,12 @@ int main()
                         {
                             baseVector.push_back(getRandomUpTo(RAND_MAX_VALUE));
                         }
-
                         resultVector = createInitializedVector(WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP);
-
                         auto prepDur = duration_cast<milliseconds>(high_resolution_clock::now() - start);
 
                         cout << "Подготовка данных заняла " << prepDur.count() << " мс" << endl;
 
                         start = high_resolution_clock::now();
-
                         #pragma omp parallel for num_threads(threadsQuantity) collapse(2)
                         for (uInt i = 0; i < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; i++)
                         {
@@ -134,17 +134,24 @@ int main()
                                 resultVector.at(i) += baseMatrix.at(i).at(j) * baseVector.at(j);
                             }
                         }
-
                         auto multDur = duration_cast<milliseconds>(high_resolution_clock::now() - start);
 
                         cout << "Перемножение заняло " << multDur.count() << " мс\n" << endl;
 
                         tmpDurVector.push_back(multDur.count());
+                        if (threadsQuantity == 1)
+                        {
+                            tmpAccelVector.push_back(static_cast<double>(1));
+                        }
+                        else
+                        {
+                            tmpAccelVector.push_back(static_cast<double>(durMatrix.at(0).at(p)) / static_cast<double>(multDur.count()));
+                        }
+                        
                     }
-
                     durMatrix.push_back(tmpDurVector);
+                    accelMatrix.push_back(tmpAccelVector);
                 }
-                
                 break;
             }
             case 3:
@@ -155,14 +162,23 @@ int main()
                 }
                 else
                 {
-                    cout << "Элементами матрицы являются значения времени выполнения умножения; "
+                    cout << "Элементами следующей матрицы являются значения времени выполнения умножения; "
                     << "по горизонтали они расположены в порядке возрастания объёма перемножаемых массивов (500-1000), "
                     << "а по вертикали - в порядке возрастания числа потоков (степени двойки от 1 до 32 включительно). "
                     << "Время приведено в миллисекундах.\n";
 
-                    outputMatrix(durMatrix);
+                    outputIntMatrix(durMatrix);
+
+                    cout << "Элементами следующей матрицы являются коэффициенты ускорения операции умножения "
+                    << "для каждого размера массивов относительно её однопоточной реализации; "
+                    << "время выполнения в однопоточной реализации взято за 1.\n";
+
+                    outputDoubleMatrix(accelMatrix);
+
+                    cout << "Средние значения ускорения для каждого количества потоков:\n";
+
+                    outputDoubleVector(calculateAverageAccelFromDoubleMatrix(accelMatrix));
                 }
-                
                 break;
             }
             default:
