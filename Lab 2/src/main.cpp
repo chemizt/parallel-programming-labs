@@ -99,7 +99,7 @@ int main()
                         cout << "Прогон перемножения матрицы " << WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP << "x" << WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP
                              << " и вектора " << WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP << "x1" << endl;
 
-                        auto start = high_resolution_clock::now();
+                        auto start = steady_clock::now();
 
                         for (uInt x = 0; x < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; x++)
                         {
@@ -121,11 +121,11 @@ int main()
                             baseVector.push_back(getRandomUpTo(RAND_MAX_VALUE));
                         }
                         resultVector = createInitializedVector(WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP);
-                        auto prepDur = duration_cast<milliseconds>(high_resolution_clock::now() - start);
+                        auto prepDur = duration_cast<milliseconds>(steady_clock::now() - start);
 
                         cout << "Подготовка данных заняла " << prepDur.count() << " мс" << endl;
 
-                        start = high_resolution_clock::now();
+                        auto startMicros = steady_clock::now();
                         #pragma omp parallel for num_threads(threadsQuantity) collapse(2)
                         for (uInt i = 0; i < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; i++)
                         {
@@ -134,9 +134,9 @@ int main()
                                 resultVector.at(i) += baseMatrix.at(i).at(j) * baseVector.at(j);
                             }
                         }
-                        auto multDur = duration_cast<milliseconds>(high_resolution_clock::now() - start);
+                        auto multDur = duration_cast<microseconds>(steady_clock::now() - startMicros);
 
-                        cout << "Перемножение заняло " << multDur.count() << " мс\n" << endl;
+                        cout << "Перемножение заняло " << multDur.count() << " мкс\n" << endl;
 
                         tmpDurVector.push_back(multDur.count());
                         if (threadsQuantity == 1)
@@ -147,7 +147,6 @@ int main()
                         {
                             tmpAccelVector.push_back(static_cast<double>(durMatrix.at(0).at(p)) / static_cast<double>(multDur.count()));
                         }
-                        
                     }
                     durMatrix.push_back(tmpDurVector);
                     accelMatrix.push_back(tmpAccelVector);
@@ -165,7 +164,7 @@ int main()
                     cout << "Элементами следующей матрицы являются значения времени выполнения умножения; "
                     << "по горизонтали они расположены в порядке возрастания объёма перемножаемых массивов (500-1000), "
                     << "а по вертикали - в порядке возрастания числа потоков (степени двойки от 1 до 32 включительно). "
-                    << "Время приведено в миллисекундах.\n";
+                    << "Время приведено в микросекундах.\n";
 
                     outputIntMatrix(durMatrix);
 

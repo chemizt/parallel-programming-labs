@@ -79,7 +79,7 @@ vector<double> calculateAverageAccelFromDoubleMatrix(doubleMatrix matrix)
             tmpSum += matrix.at(i).at(j);
         }
 
-        intermediateResult.push_back(tmpSum / (matrix.size() - 1));
+        intermediateResult.push_back(tmpSum / matrix.size());
     }
 
     return intermediateResult;
