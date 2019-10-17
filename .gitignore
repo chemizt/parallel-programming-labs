@@ -3,5 +3,7 @@
 **/CMakeFiles/**
 **/Makefile
 
+*.exe
 *.cmake
+!PreLoad.cmake
 CMakeCache.txt
