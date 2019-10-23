@@ -105,6 +105,7 @@ int main()
                         {
                             baseMatrix.push_back(createInitializedVector(WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP));
                         }
+                        baseVector = createInitializedVector(WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP);
 
                         #pragma omp parallel for collapse(2)
                         for (uInt x = 0; x < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; x++)
@@ -115,10 +116,10 @@ int main()
                             }
                         }
 
-                        #pragma omp for
+                        #pragma omp parallel for
                         for (uInt x = 0; x < WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP; x++)
                         {
-                            baseVector.push_back(getRandomUpTo(RAND_MAX_VALUE));
+                            baseVector.at(x) = getRandomUpTo(RAND_MAX_VALUE);
                         }
                         resultVector = createInitializedVector(WORKING_ENTITY_BASE_SIZE + p * WORKING_ENTITY_SIZE_STEP);
                         auto prepDur = duration_cast<milliseconds>(steady_clock::now() - start);
