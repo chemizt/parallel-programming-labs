@@ -1,17 +1,25 @@
 #include <vector>
 #include <string>
 #include <math.h>
+#include <iomanip>
 
 #include "typeDefs.hpp"
 
 using std::string;
+using std::ostringstream;
 using std::vector;
+using std::fixed;
+using std::setprecision;
 
 string getSpaces(uInt amount);
 
-uInt getNumberLength(int number);
+uInt getIntNumberLength(int number);
 
-uInt getMaxNumberLengthInMatrix(intMatrix matrix);
+uInt getDoubleNumberLength(double number);
+
+uInt getMaxNumberLengthInIntMatrix(intMatrix matrix);
+
+uInt getMaxNumberLengthInDoubleMatrix(doubleMatrix matrix);
 
 vector<int> createInitializedVector(uInt size);
 

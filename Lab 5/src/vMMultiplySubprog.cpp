@@ -16,6 +16,8 @@ int main(int argc, char** argv)
 {
     int processRank;
     int processCount;
+    double start;
+    double end;
     intMatrix baseMatrix;
     vector<int> baseVector;
     vector<int> result;
@@ -24,15 +26,16 @@ int main(int argc, char** argv)
     MPI_Init(NULL, NULL);
     MPI_Comm_rank(MPI_COMM_WORLD, &processRank);
     MPI_Comm_size(MPI_COMM_WORLD, &processCount);
+    
+    for (uInt i = 0; i < worksetSize; i++)
+    {
+        baseMatrix.push_back(createInitializedVector(worksetSize));
+    }
+    baseVector = createInitializedVector(worksetSize);
+    result = createInitializedVector(worksetSize);
 
     if (!processRank)
     {
-        for (uInt i = 0; i < worksetSize; i++)
-        {
-            baseMatrix.push_back(createInitializedVector(worksetSize));
-        }
-        baseVector = createInitializedVector(worksetSize);
-                    
         #pragma omp parallel for collapse(2)
         for (uInt i = 0; i < worksetSize; i++)
         {
@@ -48,26 +51,31 @@ int main(int argc, char** argv)
             baseVector.at(i) = getRandomUpTo(RAND_MAX_VALUE);
         }
     }
+
     MPI_Barrier(MPI_COMM_WORLD);
+    uInt recvSize = round(worksetSize / (processCount - 1));
+    
+    start = MPI_Wtime();
+    MPI_Bcast(baseVector.data(), worksetSize, MPI_INT, processRank, MPI_COMM_WORLD);
+    MPI_Bcast(baseMatrix.data(), worksetSize, MPI_INT, processRank, MPI_COMM_WORLD);
 
-    worksetSize = round(worksetSize / processCount);
-
-    double start = MPI_Wtime();
-
-    for (uInt i = 0; i < worksetSize; i++)
+    if (processRank)
     {
-        result.push_back(0);
-        for (uInt j = 0; j < worksetSize; j++)
+        for (uInt i = (processRank - 1) * recvSize; i < processRank * recvSize; i++)
         {
-            result.at(i) += baseMatrix.at(i).at(j) * baseVector.at(j);
+            for (uInt j = 0; j < recvSize; j++)
+            {
+                result.at(i) += baseMatrix.at(i).at(j) * baseVector.at(j);
+            }
         }
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-    double end = MPI_Wtime();
-
+    
     if (!processRank)
     {
+        end = MPI_Wtime();
+
         ofstream multiplicaltionDuration;
         multiplicaltionDuration.open("time");
         multiplicaltionDuration.clear();

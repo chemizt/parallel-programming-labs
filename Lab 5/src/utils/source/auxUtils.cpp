@@ -12,7 +12,7 @@ string getSpaces(uInt amount)
     return intermediateResult;
 }
 
-uInt getNumberLength(int number)
+uInt getIntNumberLength(int number)
 {
     uInt intermediateResult = 0;
     uInt i = 0;
@@ -33,7 +33,14 @@ uInt getNumberLength(int number)
     }
 }
 
-uInt getMaxNumberLengthInMatrix(intMatrix matrix)
+uInt getDoubleNumberLength(double number)
+{
+    ostringstream strStream;
+    strStream << fixed << setprecision(2) << number;
+    return strStream.str().length();
+}
+
+uInt getMaxNumberLengthInIntMatrix(intMatrix matrix)
 {
     uInt intermediateResult = 0;
 
@@ -41,8 +48,28 @@ uInt getMaxNumberLengthInMatrix(intMatrix matrix)
     {
         for (uInt j = 0; j < matrix.at(i).size(); j++)
         {
-            uInt tmpLength = getNumberLength(matrix.at(i).at(j));
+            uInt tmpLength = getIntNumberLength(matrix.at(i).at(j));
 
+            if (tmpLength > intermediateResult)
+            {
+                intermediateResult = tmpLength;
+            }
+        }
+    }
+
+    return intermediateResult;
+}
+
+uInt getMaxNumberLengthInDoubleMatrix(doubleMatrix matrix)
+{
+    uInt intermediateResult = 0;
+
+    for (uInt i = 0; i < matrix.size(); i++)
+    {
+        for (uInt j = 0; j < matrix.at(i).size(); j++)
+        {
+            uInt tmpLength = getDoubleNumberLength(matrix.at(i).at(j));
+            
             if (tmpLength > intermediateResult)
             {
                 intermediateResult = tmpLength;

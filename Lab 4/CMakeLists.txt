@@ -8,34 +8,16 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out/lib)
 set(CMAKE_CXX_FLAGS "-O3 -Os -Wall -Wextra -pedantic -fopenmp -std=c++2a")
 
-include_directories($ENV{I_MPI_ROOT}/intel64/include)
-
-find_library(
-    IMPI_LIB
-    impi.lib
-    $ENV{I_MPI_ROOT}/intel64/lib/release
+include_directories($ENV{MSMPI_INC} 
+    $ENV{MSMPI_INC}/x64
 )
 
 find_library(
-    EXTERNAL
-    impi.dll
-    libfabric.dll
-    $ENV{I_MPI_ROOT}/intel64/bin/release
-    $ENV{I_MPI_ROOT}/intel64/libfabric/bin
-)
-
-add_library(
-    EXTERNAL_DLL
-    SHARED
-    IMPORTED
-)
-
-set_property(
-    TARGET EXTERNAL_DLL
-    PROPERTY IMPORTED_LOCATION
-    ${EXTERNAL}
+    MSMPI_LIB
+    msmpi.lib
+    $ENV{MSMPI_LIB64}
 )
 
 add_executable(main ${SOURCE})
 
-target_link_libraries(main ${IMPI_LIB} ${EXTERNAL_DLL})
+target_link_libraries(main ${MSMPI_LIB})

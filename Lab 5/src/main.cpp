@@ -93,10 +93,6 @@ int main()
     uInt versatileVar;
     ofstream resultsFile;
 
-    resultsFile.open(OUTPUT_FILE_NAME);
-    resultsFile.clear();
-    resultsFile.close();
-
     cout << "Список операций:\n\n"
     << "0. Выход\n"
     << "1. Тестовый прогон\n"
@@ -167,7 +163,7 @@ int main()
                         
                         if (processesQuantity >= 2)
                         {
-                            system(("mpiexec --map-by node -n " + std::to_string(processesQuantity + 1) + " worker " + std::to_string(worksetSize)).c_str());
+                            system(("mpiexec -n " + std::to_string(processesQuantity + 1) + " worker " + std::to_string(worksetSize)).c_str());
                             opDuration.open("time");
                             opDuration >> execTime;
                             opDuration.close();
@@ -180,7 +176,7 @@ int main()
                             
                             for (uInt x = 0; x < worksetSize; x++)
                             {
-                            baseMatrix.push_back(createInitializedVector(worksetSize));
+                                baseMatrix.push_back(createInitializedVector(worksetSize));
                             }
                             baseVector = createInitializedVector(worksetSize);
                     
@@ -201,7 +197,6 @@ int main()
                             
                             auto startPoint = steady_clock::now();
                             resultVector = multiplyMatrixAndVector(baseMatrix, baseVector);
-                            cout << "here" << endl;
                             multDur = duration_cast<microseconds>(steady_clock::now() - startPoint);
                         }
 
@@ -224,6 +219,10 @@ int main()
             }
             case 3:
             {
+                resultsFile.open(OUTPUT_FILE_NAME);
+                resultsFile.clear();
+                resultsFile.close();
+                
                 if (durMatrix.size() == 0)
                 {
                     cout << "Для просмотра результатов необходимо сначала выполнить рабочие прогоны\n\n";
