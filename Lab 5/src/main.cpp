@@ -18,12 +18,9 @@ using std::cin;
 using std::endl;
 using std::ofstream;
 using std::ifstream;
-using std::ios_base;
 using std::locale;
 using std::vector;
-using std::put_time;
 using namespace std::chrono;
-
 
 #define OUTPUT_FILE_NAME "results.csv"
 

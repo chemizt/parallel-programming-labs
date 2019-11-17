@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.15)
 project(lab_5)
 
 set(SOURCE_MAIN src/main.cpp)
-set(SOURCE_WORKER src/worker.cpp)
+set(SOURCE_WORKER_RED src/workerRed.cpp)
+set(SOURCE_WORKER_CRIT src/workerCrit.cpp)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out/lib)
@@ -23,7 +24,9 @@ find_library(
 add_subdirectory(src/utils)
 
 add_executable(main ${SOURCE_MAIN})
-add_executable(worker ${SOURCE_WORKER})
+add_executable(workerRed ${SOURCE_WORKER_RED})
+add_executable(workerCrit ${SOURCE_WORKER_CRIT})
 
 target_link_libraries(main ${MSMPI_LIB} utils) 
-target_link_libraries(worker ${MSMPI_LIB} utils)
+target_link_libraries(workerRed ${MSMPI_LIB} utils)
+target_link_libraries(workerCrit ${MSMPI_LIB} utils)
