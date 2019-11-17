@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     {
         for (uInt i = (processRank - 1) * recvSize; i < processRank * recvSize; i++)
         {
-            for (uInt j = 0; j < recvSize; j++)
+            for (uInt j = 0; j < worksetSize; j++)
             {
                 result.at(i) += baseMatrix.at(i).at(j) * baseVector.at(j);
             }
