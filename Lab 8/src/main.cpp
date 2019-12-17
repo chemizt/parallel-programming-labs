@@ -16,6 +16,14 @@
 #include "randUtils.hpp"
 #include "typeDefs.hpp"
 
+#ifndef _WIN32
+#define _sleep(x) nanosleep(NULL, x * 1000)
+#endif
+#ifdef _WIN32
+#include <Windows.h>
+#define _sleep(x) Sleep(x)
+#endif
+
 using namespace std::chrono;
 using std::cin;
 using std::cout;
