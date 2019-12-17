@@ -17,6 +17,7 @@
 #include "typeDefs.hpp"
 
 #ifndef _WIN32
+#include <unistd.h>
 #define _sleep(x) usleep(x * 1000)
 #endif
 #ifdef _WIN32
