@@ -17,7 +17,7 @@
 #include "typeDefs.hpp"
 
 #ifndef _WIN32
-#define _sleep(x) nanosleep(NULL, x * 1000)
+#define _sleep(x) mSecSleep(x)
 #endif
 #ifdef _WIN32
 #include <Windows.h>

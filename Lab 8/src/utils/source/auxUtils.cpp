@@ -124,3 +124,13 @@ string getCurrentTimeStampAsString() // copy-typed from https://stackoverflow.co
 
     return oss.str();
 }
+
+void mSecSleep(unsigned long ms) // inspired by (mostly copy-typed from) https://stackoverflow.com/a/1157217
+{
+    struct timespec ts;
+
+    ts.tv_nsec = (ms % 1000) * 1000000;    
+    ts.tv_sec = ms * 1000;
+
+    nanosleep(&ts, &ts);
+}

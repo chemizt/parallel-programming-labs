@@ -27,3 +27,5 @@ vector<int> createInitializedVector(uInt size);
 vector<double> calculateAverageAccelFromDoubleMatrix(doubleMatrix matrix);
 
 string getCurrentTimeStampAsString();
+
+void mSecSleep(unsigned long ms);
