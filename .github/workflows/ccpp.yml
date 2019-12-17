@@ -12,4 +12,4 @@ jobs:
     - name: Generate Build System
       run: mkdir build && cd build && cmake ..
     - name: Build
-      run: make build
+      run: cd build && make
