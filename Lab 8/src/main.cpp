@@ -17,7 +17,7 @@
 #include "typeDefs.hpp"
 
 #ifndef _WIN32
-#define _sleep(x) mSecSleep(x)
+#define _sleep(x) usleep(x * 1000)
 #endif
 #ifdef _WIN32
 #include <Windows.h>
@@ -34,7 +34,6 @@ using std::ofstream;
 using std::vector;
 using std::stack;
 using std::string;
-
 
 #define SLEEP_MAX_RAND 5000
 
