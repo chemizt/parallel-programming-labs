@@ -37,6 +37,7 @@ using std::stack;
 using std::string;
 
 #define SLEEP_MAX_RAND 5000
+#define TEST_ITERATIONS 5
 
 random_device rD;
 mt19937_64 rNG(rD());
@@ -169,187 +170,172 @@ Consumer::Consumer(uInt newId)
     this->id = newId;
 }
 
-void producerCritWrapper(uInt pQ)
+void producerProcedure(Producer* prod, bool* msgStored, bool* infOutput, const uInt msg)
+{
+    if (!(*infOutput)) logOutput("Производитель " + std::to_string(prod->getId()) + " создал сообщение " + std::to_string(msg) + " и пытается поместить его в хранилище");
+    if (PublicStorage->getBuffer()->size() < PublicStorage->getMaxCapacity())
+    {
+        PublicStorage->getBuffer()->push(msg);
+        logOutput("Производитель " + std::to_string(prod->getId()) + " поместил сообщение " + std::to_string(msg) + " в хранилище");
+        if (prod->getWaitingStatus())
+        {
+            logOutput("Производитель " + std::to_string(prod->getId()) + " находился в ожидании освобождения места в хранилище " + std::to_string(duration_cast<milliseconds>(steady_clock::now() - prod->getWaitStartTime()).count()) + " мс");
+            prod->stopWaiting();
+        }
+        logOutput("Хранилище содержит " + std::to_string(PublicStorage->getBuffer()->size()) + " сообщений");
+        *msgStored = true;
+    }
+    else
+    {
+        if (!(*infOutput))
+        {
+            logOutput("Хранилище заполнено. Производитель " + std::to_string(prod->getId()) + " ожидает появления свободного места");
+            prod->startWaiting();
+            *infOutput = true;
+        }
+    }
+}
+
+void consumerProcedure(Consumer* cons, bool* msgRetr, bool* infOutput)
+{
+    if (!(*infOutput)) logOutput("Потребитель " + std::to_string(cons->getId()) + " запросил сообщение из хранилища");
+    if (PublicStorage->getBuffer()->size() > 0)
+    {
+        uInt message = PublicStorage->getBuffer()->top();
+        PublicStorage->getBuffer()->pop();
+        logOutput("Потребитель " + std::to_string(cons->getId()) + " извлёк сообщение " + std::to_string(message) + " из хранилища");
+        if (cons->getWaitingStatus())
+        {
+            logOutput("Потребитель " + std::to_string(cons->getId()) + " находился в ожидании появления сообщений в хранилище " + std::to_string(duration_cast<milliseconds>(steady_clock::now() - cons->getWaitStartTime()).count()) + " мс");
+            cons->stopWaiting();
+        }
+        logOutput("Хранилище содержит " + std::to_string(PublicStorage->getBuffer()->size()) + " сообщений");
+        *msgRetr = true;
+    }
+    else
+    {
+        if (!(*infOutput))
+        {
+            logOutput("Хранилище пусто. Потребитель " + std::to_string(cons->getId()) + " ожидает появления сообщений в хранилище");
+            cons->startWaiting();
+            *infOutput = true;
+        }
+    }
+}
+
+void producerCritWrapper(uInt pQ, const int runs)
 {
     #pragma omp parallel num_threads(pQ)
     {
-        Producer localProducer = Producer(omp_get_thread_num());
-        while (true)
+        Producer* localProducer = new Producer(omp_get_thread_num());
+        int i = 0;
+        while (i < runs || runs == -1)
         {
-            bool msgHasBeenStored = false;
-            bool infoHasBeenOutput = false;
-            uInt message = localProducer.produceMessage();
+            bool* msgHasBeenStored = new bool;
+            bool* infoHasBeenOutput = new bool;
+            *msgHasBeenStored = false;
+            *infoHasBeenOutput = false;
+            uInt message = localProducer->produceMessage();
             
-            _sleep(localProducer.getActionPeriod());
-
-            while (!msgHasBeenStored)
+            _sleep(localProducer->getActionPeriod());
+            while (!(*msgHasBeenStored))
             {
                 #pragma omp critical
                 {
                     auto start = steady_clock::now();
-                    if (!infoHasBeenOutput) logOutput("Производитель " + std::to_string(localProducer.getId()) + " создал сообщение " + std::to_string(message) + " и пытается поместить его в хранилище");
-                    if (PublicStorage->getBuffer()->size() < PublicStorage->getMaxCapacity())
-                    {
-                        PublicStorage->getBuffer()->push(message);
-                        logOutput("Производитель " + std::to_string(localProducer.getId()) + " поместил сообщение " + std::to_string(message) + " в хранилище");
-                        if (localProducer.getWaitingStatus())
-                        {
-                            logOutput("Производитель " + std::to_string(localProducer.getId()) + " находился в ожидании освобождения места в хранилище " + std::to_string(duration_cast<milliseconds>(steady_clock::now() - localProducer.getWaitStartTime()).count()) + " мс");
-                        }
-                        logOutput("Хранилище содержит " + std::to_string(PublicStorage->getBuffer()->size()) + " сообщений");
-                        msgHasBeenStored = true;
-                    }
-                    else
-                    {
-                        if (!infoHasBeenOutput)
-                        {
-                            logOutput("Хранилище заполнено. Производитель " + std::to_string(localProducer.getId()) + " ожидает появления свободного места");
-                            localProducer.startWaiting();
-                            infoHasBeenOutput = true;
-                        }
-                    }
-                    if (!infoHasBeenOutput) logOutput("Производитель " + std::to_string(localProducer.getId()) + " находился в критической секции " + std::to_string(duration_cast<microseconds>(steady_clock::now() - start).count()) + " мкс");
+                    producerProcedure(localProducer, msgHasBeenStored, infoHasBeenOutput, message);
+                    if (!(*infoHasBeenOutput)) logOutput("Производитель " + std::to_string(localProducer->getId()) + " находился в критической секции " + std::to_string(duration_cast<microseconds>(steady_clock::now() - start).count()) + " мкс");
                 }
-                if (!msgHasBeenStored) _sleep(500);
+                if (!(*msgHasBeenStored)) _sleep(500);
             }
+            i++;
         }
     }
 }
 
-void consumerCritWrapper(uInt cQ)
+void consumerCritWrapper(uInt cQ, const int runs)
 {
     #pragma omp parallel num_threads(cQ)
     {
-        Consumer localConsumer = Consumer(omp_get_thread_num());
-        while (true)
+        Consumer* localConsumer = new Consumer(omp_get_thread_num());
+        int i = 0;
+        while (i < runs || runs == -1)
         {
-            bool msgHasBeenRetrieved = false;
-            bool infoHasBeenOutput = false;
+            bool* msgHasBeenRetrieved = new bool;
+            bool* infoHasBeenOutput = new bool;
+            *msgHasBeenRetrieved = false;
+            *infoHasBeenOutput = false;
 
-            _sleep(localConsumer.getActionPeriod());
-
-            while (!msgHasBeenRetrieved)
+            _sleep(localConsumer->getActionPeriod());
+            while (!(*msgHasBeenRetrieved))
             {
-                
                 #pragma omp critical
                 {
                     auto start = steady_clock::now();
-                    if (!infoHasBeenOutput) logOutput("Потребитель " + std::to_string(localConsumer.getId()) + " запросил сообщение из хранилища");
-                    if (PublicStorage->getBuffer()->size() > 0)
-                    {
-                        uInt message = PublicStorage->getBuffer()->top();
-                        PublicStorage->getBuffer()->pop();
-                        logOutput("Потребитель " + std::to_string(localConsumer.getId()) + " извлёк сообщение " + std::to_string(message) + " из хранилища");
-                        if (localConsumer.getWaitingStatus())
-                        {
-                            logOutput("Потребитель " + std::to_string(localConsumer.getId()) + " находился в ожидании появления сообщений в хранилище " + std::to_string(duration_cast<milliseconds>(steady_clock::now() - localConsumer.getWaitStartTime()).count()) + " мс");
-                        }
-                        logOutput("Хранилище содержит " + std::to_string(PublicStorage->getBuffer()->size()) + " сообщений");
-                        msgHasBeenRetrieved = true;
-                    }
-                    else
-                    {
-                        if (!infoHasBeenOutput)
-                        {
-                            logOutput("Хранилище пусто. Потребитель " + std::to_string(localConsumer.getId()) + " ожидает появления сообщений в хранилище");
-                            infoHasBeenOutput = true;
-                        }
-                    }
-                    if (!infoHasBeenOutput) logOutput("Потребитель " + std::to_string(localConsumer.getId()) + " находился в критической секции " + std::to_string(duration_cast<microseconds>(steady_clock::now() - start).count()) + " мкс");
+                    consumerProcedure(localConsumer, msgHasBeenRetrieved, infoHasBeenOutput);
+                    if (!(*infoHasBeenOutput)) logOutput("Потребитель " + std::to_string(localConsumer->getId()) + " находился в критической секции " + std::to_string(duration_cast<microseconds>(steady_clock::now() - start).count()) + " мкс");
                 }
-                if (!msgHasBeenRetrieved) _sleep(500);
+                if (!(*msgHasBeenRetrieved)) _sleep(500);
             }
+            i++;
         }
     }
 }
 
-void producerLockWrapper(uInt pQ)
+void producerLockWrapper(uInt pQ, const int runs)
 {
     #pragma omp parallel num_threads(pQ)
     {
-        Producer localProducer = Producer(omp_get_thread_num());
-        while (true)
+        Producer* localProducer = new Producer(omp_get_thread_num());
+        int i = 0;
+        while (i < runs || runs == -1)
         {
-            bool msgHasBeenStored = false;
-            bool infoHasBeenOutput = false;
-            uInt message = localProducer.produceMessage();
+            bool* msgHasBeenStored = new bool;
+            bool* infoHasBeenOutput = new bool;
+            *msgHasBeenStored = false;
+            *infoHasBeenOutput = false;
+            uInt message = localProducer->produceMessage();
 
-            _sleep(localProducer.getActionPeriod());
-
-            while (!msgHasBeenStored)
+            _sleep(localProducer->getActionPeriod());
+            while (!(*msgHasBeenStored))
             {
                 omp_set_lock(&lock);
                 auto start = steady_clock::now();
-                if (!infoHasBeenOutput) logOutput("Производитель " + std::to_string(localProducer.getId()) + " создал сообщение " + std::to_string(message) + " и пытается поместить его в хранилище");
-                if (PublicStorage->getBuffer()->size() < PublicStorage->getMaxCapacity())
-                {
-                    PublicStorage->getBuffer()->push(message);
-                    logOutput("Производитель " + std::to_string(localProducer.getId()) + " поместил сообщение " + std::to_string(message) + " в хранилище");
-                    if (localProducer.getWaitingStatus())
-                    {
-                        logOutput("Производитель " + std::to_string(localProducer.getId()) + " находился в ожидании освобождения места в хранилище " + std::to_string(duration_cast<milliseconds>(steady_clock::now() - localProducer.getWaitStartTime()).count()) + " мс");
-                    }
-                    logOutput("Хранилище содержит " + std::to_string(PublicStorage->getBuffer()->size()) + " сообщений");
-                    msgHasBeenStored = true;
-                }
-                else
-                {
-                    if (!infoHasBeenOutput)
-                    {
-                        logOutput("Хранилище заполнено. Производитель " + std::to_string(localProducer.getId()) + " ожидает появления свободного места");
-                        localProducer.startWaiting();
-                        infoHasBeenOutput = true;
-                    }
-                }
-                if (!infoHasBeenOutput) logOutput("Производитель " + std::to_string(localProducer.getId()) + " удерживал замок " + std::to_string(duration_cast<microseconds>(steady_clock::now() - start).count()) + " мкс");
+                producerProcedure(localProducer, msgHasBeenStored, infoHasBeenOutput, message);
+                if (!(*infoHasBeenOutput)) logOutput("Производитель " + std::to_string(localProducer->getId()) + " удерживал замок " + std::to_string(duration_cast<microseconds>(steady_clock::now() - start).count()) + " мкс");
                 omp_unset_lock(&lock);
-                if (!msgHasBeenStored) _sleep(500);
+                if (!(*msgHasBeenStored)) _sleep(500);
             }
+            i++;
         }
     }
 }
 
-void consumerLockWrapper(uInt cQ)
+void consumerLockWrapper(uInt cQ, const int runs)
 {
     #pragma omp parallel num_threads(cQ)
     {
-        Consumer localConsumer = Consumer(omp_get_thread_num());
-        while (true)
+        Consumer* localConsumer = new Consumer(omp_get_thread_num());
+        int i = 0;
+        while (i < runs || runs == -1)
         {
-            bool msgHasBeenRetrieved = false;
-            bool infoHasBeenOutput = false;
+            bool* msgHasBeenRetrieved = new bool;
+            bool* infoHasBeenOutput = new bool;
+            *msgHasBeenRetrieved = false;
+            *infoHasBeenOutput = false;
 
-            _sleep(localConsumer.getActionPeriod());
+            _sleep(localConsumer->getActionPeriod());
 
-            while (!msgHasBeenRetrieved)
+            while (!(*msgHasBeenRetrieved))
             {
                 omp_set_lock(&lock);
                 auto start = steady_clock::now();
-                if (!infoHasBeenOutput) logOutput("Потребитель " + std::to_string(localConsumer.getId()) + " запросил сообщение из хранилища");
-                if (PublicStorage->getBuffer()->size() > 0)
-                {
-                    uInt message = PublicStorage->getBuffer()->top();
-                    PublicStorage->getBuffer()->pop();
-                    logOutput("Потребитель " + std::to_string(localConsumer.getId()) + " извлёк сообщение " + std::to_string(message) + " из хранилища");
-                    if (localConsumer.getWaitingStatus())
-                    {
-                        logOutput("Потребитель " + std::to_string(localConsumer.getId()) + " находился в ожидании появления сообщений в хранилище " + std::to_string(duration_cast<milliseconds>(steady_clock::now() - localConsumer.getWaitStartTime()).count()) + " мс");
-                    }
-                    logOutput("Хранилище содержит " + std::to_string(PublicStorage->getBuffer()->size()) + " сообщений");
-                    msgHasBeenRetrieved = true;
-                }
-                else
-                {
-                    if (!infoHasBeenOutput)
-                    {
-                        logOutput("Хранилище пусто. Потребитель " + std::to_string(localConsumer.getId()) + " ожидает появления сообщений в хранилище");
-                        infoHasBeenOutput = true;
-                    }
-                }
-                if (!infoHasBeenOutput) logOutput("Потребитель " + std::to_string(localConsumer.getId()) + " удерживал замок " + std::to_string(duration_cast<microseconds>(steady_clock::now() - start).count()) + " мкс");
+                consumerProcedure(localConsumer, msgHasBeenRetrieved, infoHasBeenOutput);
+                if (!(*infoHasBeenOutput)) logOutput("Потребитель " + std::to_string(localConsumer->getId()) + " удерживал замок " + std::to_string(duration_cast<microseconds>(steady_clock::now() - start).count()) + " мкс");
                 omp_unset_lock(&lock);
-                if (!msgHasBeenRetrieved) _sleep(500);
+                if (!(*msgHasBeenRetrieved)) _sleep(500);
             }
+            i++;
         }
     }
 }
@@ -383,10 +369,13 @@ int main()
 
     do 
     {
-        cout << "Способы синхронизации:\n"
-        << "1. Критические секции\n"
-        << "2. Замки\n"
-        << "Выберите желаемый способ синхронизации: ";
+        cout << "Доступные действия:\n"
+        << "0. Выход\n"
+        << "1. Моделирование (критические секции)\n"
+        << "2. Моделирование (замки)\n"
+        << "3. Контрольный прогон (критические секции)\n"
+        << "4. Контрольный прогон (замки)\n"
+        << "Выберите желаемое действие: ";
         cin >> versatileVar;
 
         switch (versatileVar)
@@ -399,11 +388,11 @@ int main()
                 {
                     #pragma omp section
                     {
-                        producerCritWrapper(producerQuantity);
+                        producerCritWrapper(producerQuantity, -1);
                     }
                     #pragma omp section
                     {
-                        consumerCritWrapper(consumerQuantity);
+                        consumerCritWrapper(consumerQuantity, -1);
                     }
                 }
                 break;
@@ -417,13 +406,54 @@ int main()
                 {
                     #pragma omp section
                     {
-                        producerLockWrapper(producerQuantity);
+                        producerLockWrapper(producerQuantity, -1);
                     }
                     #pragma omp section
                     {
-                        consumerLockWrapper(consumerQuantity);
+                        consumerLockWrapper(consumerQuantity, -1);
                     }
                 }
+                break;
+            }
+            case 3:
+            {
+                cout << "Выполняется контрольный прогон программы с использованием критических секций\n"
+                << "Количество итераций для каждой сущности: " << TEST_ITERATIONS << endl;
+                #pragma omp parallel sections num_threads(2)
+                {
+                    #pragma omp section
+                    {
+                        producerCritWrapper(producerQuantity, TEST_ITERATIONS);
+                        logOutput("Производители закончили работать!");
+                    }
+                    #pragma omp section
+                    {
+                        consumerCritWrapper(consumerQuantity, TEST_ITERATIONS);
+                        logOutput("Потребители закончили работать!");
+                    }
+                }
+                cout << "Контрольный прогон завершён!\n" << endl;
+                break;
+            }
+            case 4:
+            {
+                cout << "Выполняется контрольный прогон программы с использованием замков\n"
+                << "Количество итераций для каждой сущности: " << TEST_ITERATIONS<< endl;
+                omp_init_lock(&lock);
+                #pragma omp parallel sections num_threads(2)
+                {
+                    #pragma omp section
+                    {
+                        producerLockWrapper(producerQuantity, TEST_ITERATIONS);
+                        logOutput("Производители закончили работать!");
+                    }
+                    #pragma omp section
+                    {
+                        consumerLockWrapper(consumerQuantity, TEST_ITERATIONS);
+                        logOutput("Потребители закончили работать!");
+                    }
+                }
+                cout << "Контрольный прогон завершён!\n" << endl;
                 break;
             }
             case 0:
